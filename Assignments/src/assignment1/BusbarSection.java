@@ -1,0 +1,21 @@
+package assignment1;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+class BusbarSection {
+	String id;
+	String name;
+	String EquipmentContainer;
+	Double y;
+	
+	BusbarSection(Element element){
+		//Extract information from the CIM XML element into the object.
+		this.id = element.getAttribute("rdf:ID");
+		this.name = element.getElementsByTagName("cim:IdentifiedObject.name").item(0).getTextContent();
+		Node subnode1 = element.getElementsByTagName("cim:Equipment.EquipmentContainer").item(0);
+		Element subelement1 = (Element)subnode1;
+		this.EquipmentContainer = subelement1.getAttribute("rdf:resource").replace("#","");
+		this.y = 0.0;
+	}
+}

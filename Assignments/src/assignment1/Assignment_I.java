@@ -11,6 +11,10 @@ public class Assignment_I {
 	static ArrayList<Substation> substation_list = new ArrayList<Substation>();
 	static ArrayList<SynchronousMachine> synch_list = new ArrayList<SynchronousMachine>();
 	static ArrayList<PowerTransformer> trafo_list = new ArrayList<PowerTransformer>();
+	static ArrayList<BusbarSection> busbar_list = new ArrayList<BusbarSection>();
+	static ArrayList<ACLineSegment> line_list = new ArrayList<ACLineSegment>();
+	static ArrayList<Terminal> terminal_list = new ArrayList<Terminal>();
+	static ArrayList<ConnectivityNode> cnode_list = new ArrayList<ConnectivityNode>();
 	
 	public static void main(String[] args) {		
 		cleardb(); //Clear SQL database content.
@@ -19,6 +23,8 @@ public class Assignment_I {
 			extractNode(sublist.item(i)); //Extract node from Node List into database.
 		}	
 		filldb(); //Push elements into SQL database.
+		ybus(); //Create Y-Bus matrix.
+		print_ybus(); //Print Y-Bus matrix.
 	}	
 	
 	public static void extractNode(Node node){
@@ -32,6 +38,10 @@ public class Assignment_I {
 			case "cim:Substation" : substation_list.add(new Substation(element)); break;
 			case "cim:SynchronousMachine" : synch_list.add(new SynchronousMachine(element)); break;
 			case "cim:PowerTransformer" : trafo_list.add(new PowerTransformer(element)); break;
+			case "cim:BusbarSection" : busbar_list.add(new BusbarSection(element)); break;
+			case "cim:ACLineSegment" : line_list.add(new ACLineSegment(element)); break;
+			case "cim:Terminal" : terminal_list.add(new Terminal(element)); break;
+			case "cim:ConnectivityNode" : cnode_list.add(new ConnectivityNode(element)); break;
 		}
 	}
 	
@@ -51,6 +61,35 @@ public class Assignment_I {
 			conn.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public static void ybus() {
+		String irn = null;
+		for (ACLineSegment line : line_list) {
+			for (Terminal terminal : terminal_list) {
+				if (line.id.equals(terminal.ConductingEquipment)) {
+					irn = terminal.ConnectivityNode;
+					for (ConnectivityNode cnode : cnode_list) {
+						if (cnode.id.equals(irn)) {
+							irn = cnode.ConnectivityNodeContainer;
+							for (int i = 0; i < busbar_list.size(); i++) {
+								BusbarSection busbar = busbar_list.get(i);
+								if (busbar.EquipmentContainer.equals(irn)) {
+									busbar.y = busbar.y + 1/(line.rtot + line.xtot);
+									busbar_list.set(i, busbar);
+								}
+							}
+						}
+					}
+				}
+			}	
+		}
+	}
+	
+	public static void print_ybus() {
+		for (BusbarSection busbar : busbar_list) {
+			System.out.println(busbar.name + " = " + busbar.y);
 		}
 	}
 }
