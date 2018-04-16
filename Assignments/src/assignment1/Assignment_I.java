@@ -7,6 +7,7 @@ import org.w3c.dom.Element;
 import java.sql.*;
 
 public class Assignment_I {
+	//*** DEFINITION OF ARRAY LISTS ***
 	static ArrayList<VoltageLevel> voltlvl_list = new ArrayList<VoltageLevel>();	
 	static ArrayList<Substation> substation_list = new ArrayList<Substation>();
 	static ArrayList<SynchronousMachine> synch_list = new ArrayList<SynchronousMachine>();
@@ -15,36 +16,64 @@ public class Assignment_I {
 	static ArrayList<ACLineSegment> line_list = new ArrayList<ACLineSegment>();
 	static ArrayList<Terminal> terminal_list = new ArrayList<Terminal>();
 	static ArrayList<ConnectivityNode> cnode_list = new ArrayList<ConnectivityNode>();
+	static ArrayList<Breaker> breaker_list = new ArrayList<Breaker>();
+	static ArrayList<BreakerStatus> cbs_list = new ArrayList<BreakerStatus>();
 	
+	//*** MAIN ROUTINE ***
 	public static void main(String[] args) {		
-		cleardb(); //Clear SQL database content.
-		NodeList sublist = ReadXML.ToNodeList("xml/Assignment_EQ_reduced.xml"); //Read XML file into Node List.
-		for (int i = 0; i < sublist.getLength(); i++) {
-			extractNode(sublist.item(i)); //Extract node from Node List into database.
-		}	
-		filldb(); //Push elements into SQL database.
+		cleardb(); //Clear SQL database content (OBS: Comment this line to work without SQL for debugging !).
+		NodeList eq_profile = ReadXML.ToNodeList("xml/Assignment_EQ_reduced.xml"); //Read CIM EQ profile into Node List.
+		NodeList ssh_profile = ReadXML.ToNodeList("xml/Assignment_SSH_reduced.xml"); //Read CIM SSH profile into Node List.
+		for (int i = 0; i < eq_profile.getLength(); i++) {
+			extractNode(eq_profile.item(i),"EQ"); //Extract EQ profile node list into database.
+		}
+		for (int i = 0; i < ssh_profile.getLength(); i++) {
+			extractNode(ssh_profile.item(i),"SSH"); //Extract SSH profile node list into database.
+		}
+		augmentBreakers(); //Include breaker status into each breaker object.
+		filldb(); //Push elements into SQL database (OBS: Comment this line to work without SQL for debugging !).
 		ybus(); //Create Y-Bus matrix.
 		print_ybus(); //Print Y-Bus matrix.
 	}	
 	
-	public static void extractNode(Node node){
-		/* … remember to convert node to element in order to search for the data inside it.
-		element.getElementsByTagName("cim:IdentifiedObject.name").item(0).getTextContent 
-		can be used to read specific attribute of XML node.*/
+	//*** EXTRACT PROFILE NODES INTO ARRAY LISTS FOR EASIER MANIPULATION ***
+	public static void extractNode(Node node,String profile){
 		Element element = (Element)node;
 		String tagname = element.getTagName();
-		switch (tagname) {
-			case "cim:VoltageLevel" : voltlvl_list.add(new VoltageLevel(element)); break;
-			case "cim:Substation" : substation_list.add(new Substation(element)); break;
-			case "cim:SynchronousMachine" : synch_list.add(new SynchronousMachine(element)); break;
-			case "cim:PowerTransformer" : trafo_list.add(new PowerTransformer(element)); break;
-			case "cim:BusbarSection" : busbar_list.add(new BusbarSection(element)); break;
-			case "cim:ACLineSegment" : line_list.add(new ACLineSegment(element)); break;
-			case "cim:Terminal" : terminal_list.add(new Terminal(element)); break;
-			case "cim:ConnectivityNode" : cnode_list.add(new ConnectivityNode(element)); break;
+		if (profile=="EQ") {
+			switch (tagname) {
+				case "cim:VoltageLevel" : voltlvl_list.add(new VoltageLevel(element)); break;
+				case "cim:Substation" : substation_list.add(new Substation(element)); break;
+				case "cim:SynchronousMachine" : synch_list.add(new SynchronousMachine(element)); break;
+				case "cim:PowerTransformer" : trafo_list.add(new PowerTransformer(element)); break;
+				case "cim:BusbarSection" : busbar_list.add(new BusbarSection(element)); break;
+				case "cim:ACLineSegment" : line_list.add(new ACLineSegment(element)); break;
+				case "cim:Terminal" : terminal_list.add(new Terminal(element)); break;
+				case "cim:ConnectivityNode" : cnode_list.add(new ConnectivityNode(element)); break;
+				case "cim:Breaker" : breaker_list.add(new Breaker(element)); break;
+			}
+		}
+		if (profile=="SSH") {
+			if (tagname == "cim:Breaker"){
+				cbs_list.add(new BreakerStatus(element));
+			}
 		}
 	}
 	
+	//*** AUGMENT BREAKERS WITH SSH STATUS ***
+	public static void augmentBreakers() {
+		for (BreakerStatus cbs : cbs_list) {
+			for (int i = 0; i < breaker_list.size(); i++) {
+				Breaker breaker = breaker_list.get(i);
+				if (cbs.about.equals(breaker.id)) {
+					breaker.open = cbs.open;
+					breaker_list.set(i, breaker);
+				}
+			}
+		}
+	}
+	
+	//*** FILL SQL DATABASE WITH ARRAY LIST ELEMENTS ***
 	public static void filldb() {
 		for (VoltageLevel voltlvl : voltlvl_list) {voltlvl.intodb();}		
 		for (Substation substation : substation_list) {substation.intodb();}
@@ -52,6 +81,7 @@ public class Assignment_I {
 		for (PowerTransformer trafo : trafo_list) {trafo.intodb();}
 	}
 	
+	//*** CLEAR SQL DATABASE ***
 	public static void cleardb() {
 		try {
 			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/assignment_1?useSSL=false", "root", "xxxx");
@@ -64,20 +94,26 @@ public class Assignment_I {
 		}
 	}
 	
+	//*** ALGORITHM FOR Y-BUS MATRIX CREATION ***
 	public static void ybus() {
-		String irn = null;
 		for (ACLineSegment line : line_list) {
-			for (Terminal terminal : terminal_list) {
-				if (line.id.equals(terminal.ConductingEquipment)) {
-					irn = terminal.ConnectivityNode;
+			for (Terminal terminal1 : terminal_list) {
+				if (line.id.equals(terminal1.ConductingEquipment)) {			
 					for (ConnectivityNode cnode : cnode_list) {
-						if (cnode.id.equals(irn)) {
-							irn = cnode.ConnectivityNodeContainer;
-							for (int i = 0; i < busbar_list.size(); i++) {
-								BusbarSection busbar = busbar_list.get(i);
-								if (busbar.EquipmentContainer.equals(irn)) {
-									busbar.y = busbar.y + 1/(line.rtot + line.xtot);
-									busbar_list.set(i, busbar);
+						if (cnode.id.equals(terminal1.ConnectivityNode)) {
+							for (Terminal terminal2 : terminal_list) {
+								if (!terminal2.id.equals(terminal1.id) && cnode.id.equals(terminal2.ConnectivityNode)) {
+									for (Breaker breaker : breaker_list) {
+										if (breaker.id.equals(terminal2.ConductingEquipment)) {
+											for (int i = 0; i < busbar_list.size(); i++) {
+												BusbarSection busbar = busbar_list.get(i);
+												if (busbar.EquipmentContainer.equals(breaker.EquipmentContainer)) {
+													busbar.y = busbar.y + 1/(line.rtot + line.xtot);
+													busbar_list.set(i, busbar);
+												}
+											}
+										}
+									}
 								}
 							}
 						}
@@ -87,6 +123,7 @@ public class Assignment_I {
 		}
 	}
 	
+	//*** OUTPUT Y-BUS MATRIX ***
 	public static void print_ybus() {
 		for (BusbarSection busbar : busbar_list) {
 			System.out.println(busbar.name + " = " + busbar.y);

@@ -8,6 +8,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 public class ReadXML{	
+	//*** EXTRACT PROFILE NODES INTO ARRAY LISTS FOR EASIER MANIPULATION ***
 	public static NodeList ToNodeList(String filename) {	
 		NodeList sublist = null;
 		try {	
@@ -15,8 +16,8 @@ public class ReadXML{
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 			Document doc = dBuilder.parse(XmlFile);	
-			doc.getDocumentElement().normalize(); // normalize CIM XML file
-			sublist = doc.getElementsByTagName("*");
+			doc.getDocumentElement().normalize(); //Normalize CIM XML file.
+			sublist = doc.getElementsByTagName("*"); //Get all tags.
 		}
 		catch(Exception e){
 			e.printStackTrace();
