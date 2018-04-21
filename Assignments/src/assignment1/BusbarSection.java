@@ -7,7 +7,6 @@ class BusbarSection {
 	String id;
 	String name;
 	String EquipmentContainer;
-	Double y;
 	
 	BusbarSection(Element element){
 		//Extract information from the CIM XML element into the object.
@@ -16,6 +15,5 @@ class BusbarSection {
 		Node subnode1 = element.getElementsByTagName("cim:Equipment.EquipmentContainer").item(0);
 		Element subelement1 = (Element)subnode1;
 		this.EquipmentContainer = subelement1.getAttribute("rdf:resource").replace("#","");
-		this.y = 0.0;
 	}
 }

@@ -18,10 +18,11 @@ public class Assignment_I {
 	static ArrayList<ConnectivityNode> cnode_list = new ArrayList<ConnectivityNode>();
 	static ArrayList<Breaker> breaker_list = new ArrayList<Breaker>();
 	static ArrayList<BreakerStatus> cbs_list = new ArrayList<BreakerStatus>();
+	static ArrayList<String> ybus = new ArrayList<String>();
 	
 	//*** MAIN ROUTINE ***
 	public static void main(String[] args) {		
-		cleardb(); //Clear SQL database content (OBS: Comment this line to work without SQL for debugging !).
+		//cleardb(); //Clear SQL database content (OBS: Comment this line to work without SQL for debugging !).
 		NodeList eq_profile = ReadXML.ToNodeList("xml/Assignment_EQ_reduced.xml"); //Read CIM EQ profile into Node List.
 		NodeList ssh_profile = ReadXML.ToNodeList("xml/Assignment_SSH_reduced.xml"); //Read CIM SSH profile into Node List.
 		for (int i = 0; i < eq_profile.getLength(); i++) {
@@ -31,8 +32,8 @@ public class Assignment_I {
 			extractNode(ssh_profile.item(i),"SSH"); //Extract SSH profile node list into database.
 		}
 		augmentBreakers(); //Include breaker status into each breaker object.
-		filldb(); //Push elements into SQL database (OBS: Comment this line to work without SQL for debugging !).
-		ybus(); //Create Y-Bus matrix.
+		//filldb(); //Push elements into SQL database (OBS: Comment this line to work without SQL for debugging !).
+		create_ybus(); //Create Y-Bus matrix.
 		print_ybus(); //Print Y-Bus matrix.
 	}	
 	
@@ -95,7 +96,13 @@ public class Assignment_I {
 	}
 	
 	//*** ALGORITHM FOR Y-BUS MATRIX CREATION ***
-	public static void ybus() {
+	public static void create_ybus() {
+		//Option Long: ACLineSegment -> Terminal - Cnode -> Terminal -> BK -> Terminal -> Cnode -> Terminal -> Busbar
+		//Option Short: ACLineSegment -> Terminal - Cnode -> Terminal -> BK -> Busbar (through equipment container)
+		String from = null, to = null;
+		String bus_branch = null;
+		String r, x;
+		int n=0;
 		for (ACLineSegment line : line_list) {
 			for (Terminal terminal1 : terminal_list) {
 				if (line.id.equals(terminal1.ConductingEquipment)) {			
@@ -105,11 +112,22 @@ public class Assignment_I {
 								if (!terminal2.id.equals(terminal1.id) && cnode.id.equals(terminal2.ConnectivityNode)) {
 									for (Breaker breaker : breaker_list) {
 										if (breaker.id.equals(terminal2.ConductingEquipment)) {
-											for (int i = 0; i < busbar_list.size(); i++) {
-												BusbarSection busbar = busbar_list.get(i);
+											for (BusbarSection busbar : busbar_list) {
 												if (busbar.EquipmentContainer.equals(breaker.EquipmentContainer)) {
-													busbar.y = busbar.y + 1/(line.rtot + line.xtot);
-													busbar_list.set(i, busbar);
+													if (breaker.open.equals("false")){
+														if (n==0) {
+															from = busbar.name;
+															n++;														
+														}
+														else {
+															to = busbar.name;
+															r = Double.toString(line.rtot);
+															x = Double.toString(line.xtot);
+															bus_branch = from + "   " + to + "   " + r + "   " + x;
+															ybus.add(bus_branch);
+															n=0;
+														}
+													}
 												}
 											}
 										}
@@ -125,8 +143,10 @@ public class Assignment_I {
 	
 	//*** OUTPUT Y-BUS MATRIX ***
 	public static void print_ybus() {
-		for (BusbarSection busbar : busbar_list) {
-			System.out.println(busbar.name + " = " + busbar.y);
-		}
+		System.out.println("   From         " + "   To        " + "R (ohms)       " + "X (ohms)       ");
+		System.out.println("---------------------------------------------------");
+		for (String bus_branch : ybus) {
+			System.out.println(bus_branch);
+		}		
 	}
 }
