@@ -17,8 +17,9 @@ public class Assignment_I {
 	static ArrayList<Terminal> terminal_list = new ArrayList<Terminal>();
 	static ArrayList<ConnectivityNode> cnode_list = new ArrayList<ConnectivityNode>();
 	static ArrayList<Breaker> breaker_list = new ArrayList<Breaker>();
+	static ArrayList<BaseVoltage> basevolt_list = new ArrayList<BaseVoltage>();
 	static ArrayList<BreakerStatus> cbs_list = new ArrayList<BreakerStatus>();
-	static ArrayList<String> ybus = new ArrayList<String>();
+	static ArrayList<Ybus> ybus_list = new ArrayList<Ybus>();
 	
 	//*** MAIN ROUTINE ***
 	public static void main(String[] args) {		
@@ -52,6 +53,7 @@ public class Assignment_I {
 				case "cim:Terminal" : terminal_list.add(new Terminal(element)); break;
 				case "cim:ConnectivityNode" : cnode_list.add(new ConnectivityNode(element)); break;
 				case "cim:Breaker" : breaker_list.add(new Breaker(element)); break;
+				case "cim:BaseVoltage" : basevolt_list.add(new BaseVoltage(element)); break;
 			}
 		}
 		if (profile=="SSH") {
@@ -99,11 +101,20 @@ public class Assignment_I {
 	public static void create_ybus() {
 		//Option Long: ACLineSegment -> Terminal - Cnode -> Terminal -> BK -> Terminal -> Cnode -> Terminal -> Busbar
 		//Option Short: ACLineSegment -> Terminal - Cnode -> Terminal -> BK -> Busbar (through equipment container)
-		String from = null, to = null;
-		String bus_branch = null;
-		String r, x;
+		String From = null, To = null;
+		Double R, X;
+		Double SB = 100.0; //System power base (MVA).
+		Double VB = null; //Voltage base (kV).
+		Double ZB = null; //Impedance base (ohm).
 		int n=0;
 		for (ACLineSegment line : line_list) {
+			for (BaseVoltage basevolt : basevolt_list) {
+				if (line.baseVoltage_id.equals(basevolt.id)){
+					line.baseVoltage = basevolt.nominalVoltage;
+					VB = line.baseVoltage;
+					ZB = Math.pow(VB,2)/SB;
+				}
+			}			
 			for (Terminal terminal1 : terminal_list) {
 				if (line.id.equals(terminal1.ConductingEquipment)) {			
 					for (ConnectivityNode cnode : cnode_list) {
@@ -116,15 +127,14 @@ public class Assignment_I {
 												if (busbar.EquipmentContainer.equals(breaker.EquipmentContainer)) {
 													if (breaker.open.equals("false")){
 														if (n==0) {
-															from = busbar.name;
+															From = busbar.name; //From bus.
 															n++;														
 														}
-														else {
-															to = busbar.name;
-															r = Double.toString(line.rtot);
-															x = Double.toString(line.xtot);
-															bus_branch = from + "   " + to + "   " + r + "   " + x;
-															ybus.add(bus_branch);
+														else {														
+															To = busbar.name; //To bus.
+															R = line.rtot/ZB; //Per unit resistance.
+															X = line.xtot/ZB; //Per unit reactance.
+															ybus_list.add(new Ybus(From,To,R,X)); //Add branch to Y-Bus.
 															n=0;
 														}
 													}
@@ -138,15 +148,15 @@ public class Assignment_I {
 					}
 				}
 			}	
-		}
+		}		
 	}
 	
 	//*** OUTPUT Y-BUS MATRIX ***
 	public static void print_ybus() {
-		System.out.println("   From         " + "   To        " + "R (ohms)       " + "X (ohms)       ");
-		System.out.println("---------------------------------------------------");
-		for (String bus_branch : ybus) {
-			System.out.println(bus_branch);
+		System.out.println("     From      " + "     To   " + "      R (p.u)  " + "   X (p.u)    ");
+		System.out.println("-----------------------------------------------------");
+		for (Ybus branch : ybus_list) {
+			System.out.format(" %s   %s     %.4f      %.4f\n",branch.From,branch.To,branch.R,branch.X);
 		}		
 	}
 }
