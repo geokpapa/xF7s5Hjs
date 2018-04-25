@@ -6,7 +6,6 @@ import org.w3c.dom.Node;
 class ACLineSegment {
 	String id, name;
 	String baseVoltage_id;
-	Double baseVoltage;
 	Double r, x, length;
 	Double rtot, xtot;
 	
