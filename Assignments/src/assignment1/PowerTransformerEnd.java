@@ -17,11 +17,6 @@ public class PowerTransformerEnd {
 		this.id = element.getAttribute("rdf:ID");
 		this.name = element.getElementsByTagName("cim:IdentifiedObject.name").item(0).getTextContent();
 		
-		//Base Voltage ID.
-		Node subnode1 = element.getElementsByTagName("cim:TransformerEnd.BaseVoltage").item(0);
-		Element subelement1 = (Element)subnode1;
-		this.baseVoltage_id = subelement1.getAttribute("rdf:resource").replace("#","");
-		
 		//Power Transformer ID.
 		Node subnode2 = element.getElementsByTagName("cim:PowerTransformerEnd.PowerTransformer").item(0);
 		Element subelement2 = (Element)subnode2; 

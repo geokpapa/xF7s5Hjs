@@ -14,9 +14,13 @@ public class VoltageLevel {
 		//Extract information from the CIM XML element into the object.
 		this.id = element.getAttribute("rdf:ID");
 		this.name = element.getElementsByTagName("cim:IdentifiedObject.name").item(0).getTextContent();
+		
+		//Substation
 		Node subnode1 = element.getElementsByTagName("cim:VoltageLevel.Substation").item(0);
 		Element subelement1 = (Element)subnode1;
 		this.substation_id = subelement1.getAttribute("rdf:resource").replace("#","");
+		
+		//Base Voltage
 		Node subnode2 = element.getElementsByTagName("cim:VoltageLevel.BaseVoltage").item(0);
 		Element subelement2 = (Element)subnode2;
 		this.basevoltage_id = subelement2.getAttribute("rdf:resource").replace("#","");

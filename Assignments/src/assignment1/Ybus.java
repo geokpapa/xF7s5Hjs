@@ -3,14 +3,14 @@ package assignment1;
 public class Ybus {
 	String From;
 	String To;
-	Double R;
-	Double X;
+	Double Real;
+	Double Imag;
 	
-	public Ybus(String From, String To, Double R, Double X) {
+	public Ybus(String From, String To, Double Real, Double Imag) {
 		this.From = From;
 		this.To= To;
-		this.R = R;
-		this.X = X;
+		this.Real = Real;
+		this.Imag = Imag;
 	}
 
 }
