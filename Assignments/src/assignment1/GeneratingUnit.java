@@ -7,15 +7,16 @@ import java.sql.Statement;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class PowerTransformer {
-	String id;
-	String name;
-	String equipmentContainer_id;
-	
-	PowerTransformer(Element element){
+public class GeneratingUnit {
+	String id, name, equipmentContainer_id;
+	Double maxP, minP; 
+
+	GeneratingUnit(Element element){
 		//Extract information from the CIM XML element into the object.
 		this.id = element.getAttribute("rdf:ID"); //ID
 		this.name = element.getElementsByTagName("cim:IdentifiedObject.name").item(0).getTextContent(); //Name
+		this.maxP = Double.parseDouble(element.getElementsByTagName("cim:GeneratingUnit.maxOperatingP").item(0).getTextContent()); //Max P
+		this.minP = Double.parseDouble(element.getElementsByTagName("cim:GeneratingUnit.minOperatingP").item(0).getTextContent()); //Min P
 		
 		//Equipment Container
 		Node subnode1 = element.getElementsByTagName("cim:Equipment.EquipmentContainer").item(0);
@@ -25,19 +26,23 @@ public class PowerTransformer {
 	
 	@SuppressWarnings("unused")
 	void intodb(Connection conn){
-		try {
+		try {				
 			// Create table if it doesn't already exist.
 			Statement query = conn.createStatement();
-			String createTable = "CREATE TABLE IF NOT EXISTS power_transformer(" 
+			String createTable = "CREATE TABLE IF NOT EXISTS generating_unit(" 
 		            + "id VARCHAR(50),"  
-		            + "name VARCHAR(50)," 
+		            + "name VARCHAR(50),"
+		            + "max_p DECIMAL,"
+		            + "min_p DECIMAL,"
 		            + "equipmentContainer_id VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			
 			// Insert record into table.
-			String insertTable = "INSERT INTO power_transformer VALUES('" 
+			String insertTable = "INSERT INTO generating_unit VALUES('" 
 					+ this.id + "','" 
-					+ this.name + "','"
+					+ this.name + "'," 
+					+ this.maxP + ","
+					+ this.minP + ",'"
 					+ this.equipmentContainer_id + "');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.

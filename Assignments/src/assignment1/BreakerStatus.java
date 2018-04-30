@@ -8,7 +8,7 @@ public class BreakerStatus{
 	
 	BreakerStatus(Element element) {
 		//Extract information from the CIM XML element into the object.
-		this.about = element.getAttribute("rdf:about").replace("#","");
-		this.open = element.getElementsByTagName("cim:Switch.open").item(0).getTextContent();
+		this.about = element.getAttribute("rdf:about").replace("#",""); //Target breaker ID
+		this.open = element.getElementsByTagName("cim:Switch.open").item(0).getTextContent(); //Breaker status
 	} 
 }

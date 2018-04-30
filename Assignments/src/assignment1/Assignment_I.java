@@ -7,9 +7,10 @@ import org.w3c.dom.Element;
 import java.sql.*;
 
 public class Assignment_I {
-	//*** DEFINITION OF ARRAY LISTS ***
+	//*** ARRAY LIST DECLARATION ***
 	static ArrayList<VoltageLevel> voltlvl_list = new ArrayList<VoltageLevel>();	
 	static ArrayList<Substation> substation_list = new ArrayList<Substation>();
+	static ArrayList<GeneratingUnit> gen_list = new ArrayList<GeneratingUnit>();
 	static ArrayList<SynchronousMachine> synch_list = new ArrayList<SynchronousMachine>();
 	static ArrayList<ShuntCompensator> scomp_list = new ArrayList<ShuntCompensator>();
 	static ArrayList<PowerTransformer> trafo_list = new ArrayList<PowerTransformer>();
@@ -21,11 +22,11 @@ public class Assignment_I {
 	static ArrayList<Breaker> breaker_list = new ArrayList<Breaker>();
 	static ArrayList<BaseVoltage> basevolt_list = new ArrayList<BaseVoltage>();
 	static ArrayList<BreakerStatus> cbs_list = new ArrayList<BreakerStatus>();
+	static ArrayList<SynchronousState> synchState_list = new ArrayList<SynchronousState>();
 	static ArrayList<Ybus> ybus_list = new ArrayList<Ybus>();
 	
 	//*** MAIN ROUTINE ***
-	public static void main(String[] args) {		
-		//cleardb(); //Clear SQL database content (OBS: Comment this line to work without SQL for debugging purposes !).
+	public static void main(String[] args) {
 		NodeList eq_profile = ReadXML.ToNodeList("xml/Assignment_EQ_reduced.xml"); //Read CIM EQ profile into Node List.
 		NodeList ssh_profile = ReadXML.ToNodeList("xml/Assignment_SSH_reduced.xml"); //Read CIM SSH profile into Node List.
 		for (int i = 0; i < eq_profile.getLength(); i++) {
@@ -34,10 +35,10 @@ public class Assignment_I {
 		for (int i = 0; i < ssh_profile.getLength(); i++) {
 			extractNode(ssh_profile.item(i),"SSH"); //Extract SSH profile node list into database.
 		}
-		augmentBreakers(); //Include breaker status into each breaker object.
-		//filldb(); //Push elements into SQL database (OBS: Comment this line to work without SQL for debugging purposes !).
-		create_ybus(); //Create Y-Bus matrix.
-		print_ybus(); //Print Y-Bus matrix.
+		augmentObjects(); //Augment EQ objects with SSH data.
+		createYbus(); //Create Y-Bus matrix.
+		printYbus(); //Print Y-Bus matrix.
+		createdb("root","xxxx"); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
 	}	
 	
 	//*** EXTRACT PROFILE NODES INTO ARRAY LISTS FOR EASIER MANIPULATION ***
@@ -48,6 +49,7 @@ public class Assignment_I {
 			switch (tagname) {
 				case "cim:VoltageLevel" : voltlvl_list.add(new VoltageLevel(element)); break;
 				case "cim:Substation" : substation_list.add(new Substation(element)); break;
+				case "cim:GeneratingUnit" : gen_list.add(new GeneratingUnit(element)); break;
 				case "cim:SynchronousMachine" : synch_list.add(new SynchronousMachine(element)); break;
 				case "cim:LinearShuntCompensator" : scomp_list.add(new ShuntCompensator(element)); break;
 				case "cim:PowerTransformer" : trafo_list.add(new PowerTransformer(element)); break;
@@ -61,10 +63,17 @@ public class Assignment_I {
 			}
 		}
 		if (profile=="SSH") {
-			if (tagname == "cim:Breaker"){
-				cbs_list.add(new BreakerStatus(element));
+			switch (tagname) {
+				case "cim:Breaker" : cbs_list.add(new BreakerStatus(element)); break;
+				case "cim:SynchronousMachine" : synchState_list.add(new SynchronousState(element));
 			}
 		}
+	}
+	
+	//*** AUGMENT EQ PROFILE OBJECTS WITH DATA FROM SSH PROFILE ***
+	public static void augmentObjects() {
+		augmentBreakers(); //Include breaker status into each breaker object.
+		augmentSynchMachines(); //Include P,Q values into each synchronous machine object.
 	}
 	
 	//*** AUGMENT BREAKERS WITH SSH STATUS ***
@@ -80,29 +89,22 @@ public class Assignment_I {
 		}
 	}
 	
-	//*** FILL SQL DATABASE WITH ARRAY LIST ELEMENTS ***
-	public static void filldb() {
-		for (VoltageLevel voltlvl : voltlvl_list) {voltlvl.intodb();}		
-		for (Substation substation : substation_list) {substation.intodb();}
-		for (SynchronousMachine synch : synch_list) {synch.intodb();}
-		for (PowerTransformer trafo : trafo_list) {trafo.intodb();}
-	}
-	
-	//*** CLEAR SQL DATABASE ***
-	public static void cleardb() {
-		try {
-			Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/assignment_1?useSSL=false", "root", "xxxx");
-			Statement query = conn.createStatement();
-			query.execute("DROP DATABASE IF EXISTS assignment_1");
-			query.execute("CREATE DATABASE IF NOT EXISTS assignment_1");
-			conn.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
+	//*** AUGMENT SYNCHRONOUS MACHINES WITH SSH STATUS ***
+	public static void augmentSynchMachines() {
+		for (SynchronousState synchState : synchState_list) {
+			for (int i = 0; i < synch_list.size(); i++) {
+				SynchronousMachine synch = synch_list.get(i);
+				if (synchState.about.equals(synch.id)) {
+					synch.P = synchState.P;
+					synch.Q = synchState.Q;
+					synch_list.set(i, synch);
+				}
+			}
 		}
 	}
 	
 	//*** ALGORITHM FOR Y-BUS MATRIX CREATION ***
-	public static void create_ybus() {
+	public static void createYbus() {
 		Double SB = 100.0; //System power base (MVA).
 		SearchRoutines.line_search(SB,line_list,terminal_list,cnode_list,breaker_list,busbar_list,voltlvl_list,basevolt_list,ybus_list); //Connect line to buses.
 		SearchRoutines.trafo_search(SB,trafoEnd_list,terminal_list,cnode_list,breaker_list,busbar_list,voltlvl_list,basevolt_list,ybus_list); //Connect transformers to buses.
@@ -110,11 +112,53 @@ public class Assignment_I {
 	}
 	
 	//*** OUTPUT Y-BUS MATRIX ***
-	public static void print_ybus() {
+	public static void printYbus() {
 		System.out.println("     From      " + "     To   " + "     R/G (p.u)  " + "   X/B (p.u)    ");
 		System.out.println("-----------------------------------------------------");
 		for (Ybus branch : ybus_list) {
 			System.out.format(" %s   %s     %.4f      %.4f\n",branch.From,branch.To,branch.Real,branch.Imag);
 		}		
+	}
+	
+	//*** CONNECT TO SQL DATABASE ***
+	public static void connectdb(String user, String psswd, Connection conn) {
+		try {
+			String jdbcString = "jdbc:mysql://localhost:3306/assignment_1?useSSL=false";
+			conn = DriverManager.getConnection(jdbcString, user, psswd);
+			Statement query = conn.createStatement();
+			query.execute("DROP DATABASE IF EXISTS assignment_1"); //Clear SQL database.
+			query.execute("CREATE DATABASE IF NOT EXISTS assignment_1"); //Create new SQL database.	
+			query.close(); //Close query.
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//*** BUILD SQL DATABASE WITH ARRAY LIST ELEMENTS ***
+	public static void createdb(String user, String psswd) {
+		try {
+			//Connect to database.
+			String jdbcString = "jdbc:mysql://localhost:3306/assignment_1?useSSL=false";
+			Connection conn = DriverManager.getConnection(jdbcString, user, psswd);
+			Statement query = conn.createStatement();
+			query.execute("DROP DATABASE IF EXISTS assignment_1"); //Clear SQL database.
+			query.execute("CREATE DATABASE IF NOT EXISTS assignment_1"); //Create new SQL database.			
+			query.close(); //Close query.
+			
+			//Fill database with array list elements.
+			conn.setCatalog("assignment_1"); //Insure connection to correct database.
+			for (BaseVoltage basevolt : basevolt_list) {basevolt.intodb(conn);}
+			for (Substation substation : substation_list) {substation.intodb(conn);}
+			for (VoltageLevel voltlvl : voltlvl_list) {voltlvl.intodb(conn);}		
+			for (GeneratingUnit gen : gen_list) {gen.intodb(conn);}
+			for (SynchronousMachine synch : synch_list) {synch.intodb(conn);}
+			for (PowerTransformer trafo : trafo_list) {trafo.intodb(conn);}
+			for (Ybus branch : ybus_list) {branch.intodb(conn);}	
+			
+			//Close connection to database.			
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }
