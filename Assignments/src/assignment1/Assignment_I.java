@@ -21,8 +21,12 @@ public class Assignment_I {
 	static ArrayList<ConnectivityNode> cnode_list = new ArrayList<ConnectivityNode>();
 	static ArrayList<Breaker> breaker_list = new ArrayList<Breaker>();
 	static ArrayList<BaseVoltage> basevolt_list = new ArrayList<BaseVoltage>();
+	static ArrayList<RegulatingControl> regControl_list = new ArrayList<RegulatingControl>();
+	static ArrayList<RegulatingControlTarget> regControlTgt_list = new ArrayList<RegulatingControlTarget>();
+	static ArrayList<EnergyConsumer> energy_list = new ArrayList<EnergyConsumer>();
 	static ArrayList<BreakerStatus> cbs_list = new ArrayList<BreakerStatus>();
 	static ArrayList<SynchronousState> synchState_list = new ArrayList<SynchronousState>();
+	static ArrayList<EnergyConsumerState> energyState_list = new ArrayList<EnergyConsumerState>();
 	static ArrayList<Ybus> ybus_list = new ArrayList<Ybus>();
 	
 	//*** MAIN ROUTINE ***
@@ -60,47 +64,26 @@ public class Assignment_I {
 				case "cim:ConnectivityNode" : cnode_list.add(new ConnectivityNode(element)); break;
 				case "cim:Breaker" : breaker_list.add(new Breaker(element)); break;
 				case "cim:BaseVoltage" : basevolt_list.add(new BaseVoltage(element)); break;
+				case "cim:RegulatingControl" : regControl_list.add(new RegulatingControl(element)); break;
+				case "cim:EnergyConsumer" : energy_list.add(new EnergyConsumer(element)); break;
 			}
 		}
 		if (profile=="SSH") {
 			switch (tagname) {
 				case "cim:Breaker" : cbs_list.add(new BreakerStatus(element)); break;
-				case "cim:SynchronousMachine" : synchState_list.add(new SynchronousState(element));
+				case "cim:SynchronousMachine" : synchState_list.add(new SynchronousState(element)); break;
+				case "cim:RegulatingControl" : regControlTgt_list.add(new RegulatingControlTarget(element)); break;
+				case "cim:EnergyConsumer" : energyState_list.add(new EnergyConsumerState(element)); break;
 			}
 		}
 	}
 	
 	//*** AUGMENT EQ PROFILE OBJECTS WITH DATA FROM SSH PROFILE ***
 	public static void augmentObjects() {
-		augmentBreakers(); //Include breaker status into each breaker object.
-		augmentSynchMachines(); //Include P,Q values into each synchronous machine object.
-	}
-	
-	//*** AUGMENT BREAKERS WITH SSH STATUS ***
-	public static void augmentBreakers() {
-		for (BreakerStatus cbs : cbs_list) {
-			for (int i = 0; i < breaker_list.size(); i++) {
-				Breaker breaker = breaker_list.get(i);
-				if (cbs.about.equals(breaker.id)) {
-					breaker.open = cbs.open;
-					breaker_list.set(i, breaker);
-				}
-			}
-		}
-	}
-	
-	//*** AUGMENT SYNCHRONOUS MACHINES WITH SSH STATUS ***
-	public static void augmentSynchMachines() {
-		for (SynchronousState synchState : synchState_list) {
-			for (int i = 0; i < synch_list.size(); i++) {
-				SynchronousMachine synch = synch_list.get(i);
-				if (synchState.about.equals(synch.id)) {
-					synch.P = synchState.P;
-					synch.Q = synchState.Q;
-					synch_list.set(i, synch);
-				}
-			}
-		}
+		AugmentObjects.augmentBreakers(breaker_list,cbs_list); //Include breaker status into each breaker object.
+		AugmentObjects.augmentSynchMachines(synch_list,synchState_list); //Include P,Q values into each synchronous machine object.
+		AugmentObjects.augmentRegulatingControls(regControl_list, regControlTgt_list); //Include target value into regulating control object.
+		AugmentObjects.augmentEnergyConsumers(energy_list, energyState_list); //Include P,Q values into each energy consumer.
 	}
 	
 	//*** ALGORITHM FOR Y-BUS MATRIX CREATION ***
@@ -120,20 +103,6 @@ public class Assignment_I {
 		}		
 	}
 	
-	//*** CONNECT TO SQL DATABASE ***
-	public static void connectdb(String user, String psswd, Connection conn) {
-		try {
-			String jdbcString = "jdbc:mysql://localhost:3306/assignment_1?useSSL=false";
-			conn = DriverManager.getConnection(jdbcString, user, psswd);
-			Statement query = conn.createStatement();
-			query.execute("DROP DATABASE IF EXISTS assignment_1"); //Clear SQL database.
-			query.execute("CREATE DATABASE IF NOT EXISTS assignment_1"); //Create new SQL database.	
-			query.close(); //Close query.
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	//*** BUILD SQL DATABASE WITH ARRAY LIST ELEMENTS ***
 	public static void createdb(String user, String psswd) {
 		try {
@@ -151,8 +120,10 @@ public class Assignment_I {
 			for (Substation substation : substation_list) {substation.intodb(conn);}
 			for (VoltageLevel voltlvl : voltlvl_list) {voltlvl.intodb(conn);}		
 			for (GeneratingUnit gen : gen_list) {gen.intodb(conn);}
-			for (SynchronousMachine synch : synch_list) {synch.intodb(conn);}
+			for (SynchronousMachine synch : synch_list) {synch.intodb(conn);}			
+			for (RegulatingControl regCtl : regControl_list) {regCtl.intodb(conn);}
 			for (PowerTransformer trafo : trafo_list) {trafo.intodb(conn);}
+			for (EnergyConsumer energy : energy_list) {energy.intodb(conn);}
 			for (Ybus branch : ybus_list) {branch.intodb(conn);}	
 			
 			//Close connection to database.			
