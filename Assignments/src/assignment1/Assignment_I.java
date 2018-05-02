@@ -22,17 +22,19 @@ public class Assignment_I {
 	static ArrayList<Breaker> breaker_list = new ArrayList<Breaker>();
 	static ArrayList<BaseVoltage> basevolt_list = new ArrayList<BaseVoltage>();
 	static ArrayList<RegulatingControl> regControl_list = new ArrayList<RegulatingControl>();
+	static ArrayList<RatioTapChanger> tapChanger_list = new ArrayList<RatioTapChanger>();
 	static ArrayList<RegulatingControlTarget> regControlTgt_list = new ArrayList<RegulatingControlTarget>();
 	static ArrayList<EnergyConsumer> energy_list = new ArrayList<EnergyConsumer>();
 	static ArrayList<BreakerStatus> cbs_list = new ArrayList<BreakerStatus>();
 	static ArrayList<SynchronousState> synchState_list = new ArrayList<SynchronousState>();
 	static ArrayList<EnergyConsumerState> energyState_list = new ArrayList<EnergyConsumerState>();
+	static ArrayList<RatioTapChangerStep> tapChangerStep_list = new ArrayList<RatioTapChangerStep>();
 	static ArrayList<Ybus> ybus_list = new ArrayList<Ybus>();
 	
 	//*** MAIN ROUTINE ***
 	public static void main(String[] args) {
-		NodeList eq_profile = ReadXML.ToNodeList("xml/Assignment_EQ_reduced.xml"); //Read CIM EQ profile into Node List.
-		NodeList ssh_profile = ReadXML.ToNodeList("xml/Assignment_SSH_reduced.xml"); //Read CIM SSH profile into Node List.
+		NodeList eq_profile = ReadXML.ToNodeList("xml/MicroGridTestConfiguration_T1_BE_EQ_V2.xml"); //Read CIM EQ profile into Node List.
+		NodeList ssh_profile = ReadXML.ToNodeList("xml/MicroGridTestConfiguration_T1_BE_SSH_V2.xml"); //Read CIM SSH profile into Node List.
 		for (int i = 0; i < eq_profile.getLength(); i++) {
 			extractNode(eq_profile.item(i),"EQ"); //Extract EQ profile node list into database.
 		}
@@ -66,6 +68,7 @@ public class Assignment_I {
 				case "cim:BaseVoltage" : basevolt_list.add(new BaseVoltage(element)); break;
 				case "cim:RegulatingControl" : regControl_list.add(new RegulatingControl(element)); break;
 				case "cim:EnergyConsumer" : energy_list.add(new EnergyConsumer(element)); break;
+				case "cim:RatioTapChanger" : tapChanger_list.add(new RatioTapChanger(element)); break;
 			}
 		}
 		if (profile=="SSH") {
@@ -74,6 +77,7 @@ public class Assignment_I {
 				case "cim:SynchronousMachine" : synchState_list.add(new SynchronousState(element)); break;
 				case "cim:RegulatingControl" : regControlTgt_list.add(new RegulatingControlTarget(element)); break;
 				case "cim:EnergyConsumer" : energyState_list.add(new EnergyConsumerState(element)); break;
+				case "cim:RatioTapChangerStep" : tapChangerStep_list.add(new RatioTapChangerStep(element)); break;
 			}
 		}
 	}
@@ -84,6 +88,7 @@ public class Assignment_I {
 		AugmentObjects.augmentSynchMachines(synch_list,synchState_list); //Include P,Q values into each synchronous machine object.
 		AugmentObjects.augmentRegulatingControls(regControl_list, regControlTgt_list); //Include target value into regulating control object.
 		AugmentObjects.augmentEnergyConsumers(energy_list, energyState_list); //Include P,Q values into each energy consumer.
+		AugmentObjects.augmentRatioTapChangers(tapChanger_list, tapChangerStep_list); //Include current tap position (step) into each tap changer object.
 	}
 	
 	//*** ALGORITHM FOR Y-BUS MATRIX CREATION ***
@@ -124,6 +129,9 @@ public class Assignment_I {
 			for (RegulatingControl regCtl : regControl_list) {regCtl.intodb(conn);}
 			for (PowerTransformer trafo : trafo_list) {trafo.intodb(conn);}
 			for (EnergyConsumer energy : energy_list) {energy.intodb(conn);}
+			for (PowerTransformerEnd trafoEnd : trafoEnd_list) {trafoEnd.intodb(conn);}
+			for (Breaker breaker : breaker_list) {breaker.intodb(conn);}
+			for (RatioTapChanger tapChanger : tapChanger_list) {tapChanger.intodb(conn);}
 			for (Ybus branch : ybus_list) {branch.intodb(conn);}	
 			
 			//Close connection to database.			

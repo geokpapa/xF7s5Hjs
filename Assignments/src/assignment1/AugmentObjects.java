@@ -60,4 +60,18 @@ public class AugmentObjects {
 			}
 		}
 	}
+	
+	//*** AUGMENT RATIO TAP CHANGERS WITH SSH STATUS ***
+	public static void augmentRatioTapChangers(ArrayList<RatioTapChanger> tapChanger_list,
+			ArrayList<RatioTapChangerStep> tapChangerStep_list) {
+		for (RatioTapChangerStep tapChangerStep : tapChangerStep_list) {
+			for (int i = 0; i < tapChanger_list.size(); i++) {
+				RatioTapChanger tapChanger = tapChanger_list.get(i);
+				if (tapChangerStep.about.equals(tapChanger.id)) {
+					tapChanger.step = tapChangerStep.step;
+					tapChanger_list.set(i, tapChanger);
+				}
+			}
+		}
+	}
 }
