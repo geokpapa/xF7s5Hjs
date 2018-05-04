@@ -31,10 +31,11 @@ public class Assignment_I {
 	static ArrayList<RatioTapChangerStep> tapChangerStep_list = new ArrayList<RatioTapChangerStep>();
 	static ArrayList<Ybus> ybus_list = new ArrayList<Ybus>();
 	
-	//*** MAIN ROUTINE ***
-	public static void main(String[] args) {
-		NodeList eq_profile = ReadXML.ToNodeList("xml/MicroGridTestConfiguration_T1_BE_EQ_V2.xml"); //Read CIM EQ profile into Node List.
-		NodeList ssh_profile = ReadXML.ToNodeList("xml/MicroGridTestConfiguration_T1_BE_SSH_V2.xml"); //Read CIM SSH profile into Node List.
+	//*** MAIN ROUTINE (EXECUTED FROM GUI) ***
+	public static ArrayList<Ybus> execute(String eqFile, String sshFile, String user, String psswd){
+		initLists(); //Initialize array lists.
+		NodeList eq_profile = ReadXML.ToNodeList(eqFile); //Read CIM EQ profile into Node List.
+		NodeList ssh_profile = ReadXML.ToNodeList(sshFile); //Read CIM SSH profile into Node List.
 		for (int i = 0; i < eq_profile.getLength(); i++) {
 			extractNode(eq_profile.item(i),"EQ"); //Extract EQ profile node list into database.
 		}
@@ -43,8 +44,9 @@ public class Assignment_I {
 		}
 		augmentObjects(); //Augment EQ objects with SSH data.
 		createYbus(); //Create Y-Bus matrix.
-		printYbus(); //Print Y-Bus matrix.
-		createdb("root","xxxx"); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
+		createdb(user,psswd); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
+		printYbus(); //Print Y-Bus matrix.		
+		return ybus_list; //Return Y-Bus list to display it in the GUI.
 	}	
 	
 	//*** EXTRACT PROFILE NODES INTO ARRAY LISTS FOR EASIER MANIPULATION ***
@@ -89,6 +91,7 @@ public class Assignment_I {
 		AugmentObjects.augmentRegulatingControls(regControl_list, regControlTgt_list); //Include target value into regulating control object.
 		AugmentObjects.augmentEnergyConsumers(energy_list, energyState_list); //Include P,Q values into each energy consumer.
 		AugmentObjects.augmentRatioTapChangers(tapChanger_list, tapChangerStep_list); //Include current tap position (step) into each tap changer object.
+		AugmentObjects.baseVoltage(synch_list, energy_list, breaker_list, voltlvl_list); //Include base voltage in objects: "Synch. Machine", "Energy Consumer", "Breaker".
 	}
 	
 	//*** ALGORITHM FOR Y-BUS MATRIX CREATION ***
@@ -139,5 +142,31 @@ public class Assignment_I {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	//*** ARRAY LIST INITIALIZATION ***
+	public static void initLists() {		
+		voltlvl_list.clear();	
+		substation_list.clear();
+		gen_list.clear();
+		synch_list.clear();
+		scomp_list.clear();
+		trafo_list.clear();
+		trafoEnd_list.clear();
+		busbar_list.clear();
+		line_list.clear();
+		terminal_list.clear();
+		cnode_list.clear();
+		breaker_list.clear();
+		basevolt_list.clear();
+		regControl_list.clear();
+		tapChanger_list.clear();
+		regControlTgt_list.clear();
+		energy_list.clear();
+		cbs_list.clear();
+		synchState_list.clear();
+		energyState_list.clear();
+		tapChangerStep_list.clear();
+		ybus_list.clear();		
 	}
 }

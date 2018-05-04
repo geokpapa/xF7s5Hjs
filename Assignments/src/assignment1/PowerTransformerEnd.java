@@ -8,11 +8,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class PowerTransformerEnd {	
-	String id;
-	String name;
-	String powerTransformer_id;
-	String baseVoltage_id;
-	String terminal_id;
+	String id, name;
+	String powerTransformer_id, basevoltage_id, terminal_id;
 	Double rtot, xtot;	
 	
 	PowerTransformerEnd(Element element){
@@ -30,7 +27,12 @@ public class PowerTransformerEnd {
 		//Terminal ID.
 		Node subnode3 = element.getElementsByTagName("cim:TransformerEnd.Terminal").item(0);
 		Element subelement3 = (Element)subnode3; 
-		this.terminal_id = subelement3.getAttribute("rdf:resource").replace("#","");	
+		this.terminal_id = subelement3.getAttribute("rdf:resource").replace("#","");
+		
+		//Base Voltage ID.
+		Node subnode4 = element.getElementsByTagName("cim:TransformerEnd.BaseVoltage").item(0);
+		Element subelement4 = (Element)subnode4; 
+		this.basevoltage_id = subelement4.getAttribute("rdf:resource").replace("#","");
 	}
 	
 	@SuppressWarnings("unused")
@@ -54,7 +56,7 @@ public class PowerTransformerEnd {
 					+ this.rtot + ","
 					+ this.xtot + ",'"
 					+ this.powerTransformer_id + "','"
-					+ this.baseVoltage_id +"');";
+					+ this.basevoltage_id +"');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.
 		} catch (SQLException e) {

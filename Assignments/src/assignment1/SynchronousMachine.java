@@ -8,7 +8,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class SynchronousMachine {
-	String id, name, genUnit_id, regulatingControl_id,equipmentContainer_id;
+	String id, name;
+	String genUnit_id, regulatingControl_id,equipmentContainer_id, basevoltage_id;
 	Double ratedS, P, Q;
 	
 	SynchronousMachine(Element element){
@@ -46,6 +47,7 @@ public class SynchronousMachine {
 		            + "Q DECIMAL,"
 		            + "genUnit_ID VARCHAR(50),"
 		            + "regulatingControl_id VARCHAR(50),"
+		            + "baseVoltage_id VARCHAR(50),"
 		            + "equipmentContainer_id VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			
@@ -58,6 +60,7 @@ public class SynchronousMachine {
 					+ this.Q + ",'" 
 					+ this.genUnit_id + "','"
 					+ this.regulatingControl_id + "','"
+					+ this.basevoltage_id + "','"
 					+ this.equipmentContainer_id + "');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.

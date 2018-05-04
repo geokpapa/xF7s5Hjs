@@ -45,7 +45,7 @@ public class SearchRoutines {
 															To = busbar.name; //To bus.															
 															R = line.rtot/ZB; //Per unit resistance.
 															X = line.xtot/ZB; //Per unit reactance.
-															ybus_list.add(new Ybus(From,To,R,X)); //Add branch to Y-Bus.
+															ybus_list.add(new Ybus(From,To,"ACLine",line.name,R,X)); //Add branch to Y-Bus.
 															ft = true; //Switch to From bus.
 														}
 													}
@@ -103,7 +103,7 @@ public class SearchRoutines {
 														}
 														else {														
 															To = busbar.name; //To bus.														
-															ybus_list.add(new Ybus(From,To,R,X)); //Add branch to Y-Bus.
+															ybus_list.add(new Ybus(From,To,"Trafo",trafoEnd.name,R,X)); //Add branch to Y-Bus.
 															ft = true; //Switch to From bus.															
 														}
 													}
@@ -152,7 +152,7 @@ public class SearchRoutines {
 											To = busbar.name; //To bus.
 											G = scomp.gs/YB; //Per unit conductance.
 											B = scomp.bs/YB; //Per unit susceptance.
-											ybus_list.add(new Ybus(From,To,G,B)); //Add branch to Y-Bus.																				
+											ybus_list.add(new Ybus(From,To,"ShuntComp",scomp.name,G,B)); //Add branch to Y-Bus.																				
 										}
 									}																			
 								}

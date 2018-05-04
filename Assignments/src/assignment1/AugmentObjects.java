@@ -74,4 +74,20 @@ public class AugmentObjects {
 			}
 		}
 	}
+
+	//*** AUGMENT SPECIFIED OBJECTS WITH BASE VOLTAGE ***
+	public static void baseVoltage(ArrayList<SynchronousMachine> synch_list, ArrayList<EnergyConsumer> energy_list,
+			ArrayList<Breaker> breaker_list, ArrayList<VoltageLevel> voltlvl_list) {
+		for (VoltageLevel voltlvl : voltlvl_list) {
+			for (SynchronousMachine synch : synch_list) {
+				if (synch.equipmentContainer_id.equals(voltlvl.id)) {synch.basevoltage_id = voltlvl.basevoltage_id;}
+			}
+			for (EnergyConsumer energy : energy_list) {
+				if (energy.equipmentContainer_id.equals(voltlvl.id)) {energy.basevoltage_id = voltlvl.basevoltage_id;}
+			}
+			for (Breaker breaker : breaker_list) {
+				if (breaker.EquipmentContainer.equals(voltlvl.id)) {breaker.basevoltage_id = voltlvl.basevoltage_id;}
+			}
+		}
+	}
 }

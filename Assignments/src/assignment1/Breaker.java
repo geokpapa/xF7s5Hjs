@@ -12,6 +12,7 @@ public class Breaker {
 	String name;
 	String EquipmentContainer;
 	String open;
+	String basevoltage_id;
 	
 	Breaker(Element element){
 		//Extract information from the CIM XML element into the object.
@@ -30,7 +31,8 @@ public class Breaker {
 			String createTable = "CREATE TABLE IF NOT EXISTS breaker(" 
 		            + "id VARCHAR(50),"  
 		            + "name VARCHAR(50),"
-		            + "open VARCHAR(50)," 
+		            + "open VARCHAR(50),"
+		            + "baseVoltage_id VARCHAR(50)," 
 		            + "EquipmentContainer VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			
@@ -39,6 +41,7 @@ public class Breaker {
 					+ this.id + "','"
 					+ this.name + "','"
 					+ this.open + "','"
+					+ this.basevoltage_id + "','"
 					+ this.EquipmentContainer + "');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.

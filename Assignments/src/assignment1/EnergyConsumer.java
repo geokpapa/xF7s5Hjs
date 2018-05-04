@@ -7,8 +7,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 public class EnergyConsumer {
-	String id, name, equipmentContainer_id;
-	Double targetValue, P, Q;
+	String id, name;
+	String equipmentContainer_id, basevoltage_id;
+	Double targetValue, P, Q;	
 
 	EnergyConsumer(Element element){
 		//Extract information from the CIM XML element into the object.
@@ -31,6 +32,7 @@ public class EnergyConsumer {
 		            + "name VARCHAR(50)," 
 		            + "P DECIMAL,"
 		            + "Q DECIMAL,"
+		            + "baseVoltage_id VARCHAR(50)," 
 		            + "equipmentContaider_id VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			
@@ -40,6 +42,7 @@ public class EnergyConsumer {
 					+ this.name + "',"
 					+ this.P + ","
 					+ this.Q + ",'"
+					+ this.basevoltage_id + "','"
 					+ this.equipmentContainer_id + "');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.
