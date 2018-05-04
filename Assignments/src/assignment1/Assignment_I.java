@@ -114,10 +114,17 @@ public class Assignment_I {
 	//*** OUTPUT Y-BUS MATRIX ***
 	public static void printYbus() {
 	
-		System.out.println("     From      " + "     To   " + "     R (p.u)  " + "   X (p.u)    " + "   G (p.u)    " + "   B (p.u)    ");
-		System.out.println("-------------------------------------------------------------------------------");
+		System.out.println("     From      " + "     To   " + "     R (p.u)  " + "   X (p.u)    " + "   G (p.u)    " + "   B (p.u)    "+ "Type of element  ");
+		System.out.println("--------------------------------------------------------------------------------------------------");
 		for (Ybus branch : ybus_list) {
-			System.out.format(" %s   %s     %.4f      %.4f      %.4f      %.4f\n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch);
+			if (branch.Element=="Shunt Capacitor")
+			{
+				System.out.format(" %s        %s     %.4f      %.4f        %.4f        %.4f     %s \n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch,branch.Element);
+			}
+			else {
+				System.out.format(" %s   %s     %.4f      %.4f        %.4f        %.4f     %s \n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch,branch.Element);	
+			}
+			
 		}		
 	}
 	

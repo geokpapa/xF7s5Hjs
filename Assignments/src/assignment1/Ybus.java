@@ -11,14 +11,16 @@ public class Ybus {
 	Double Imag;
 	Double Gch;
 	Double Bch;
+	String Element;
 	
-	Ybus(String From, String To, Double Real, Double Imag, Double Gch, Double Bch) {
+	Ybus(String From, String To, Double Real, Double Imag, Double Gch, Double Bch, String Element) {
 		this.From = From;
 		this.To= To;
 		this.Real = Real;
 		this.Imag = Imag;
 		this.Gch = Gch;
 		this.Bch = Bch;
+		this.Element= Element;
 	}
 	
 	@SuppressWarnings("unused")
@@ -30,9 +32,10 @@ public class Ybus {
 		            + "From_Bus VARCHAR(50),"  
 		            + "To_Bus VARCHAR(50)," 
 		            + "RG DECIMAL,"  
-		            + "XB DECIMAL)"
-		            + "Gch DEMICAL"
-		            + "BcH DEMICAL"; 
+		            + "XB DECIMAL,"
+		            + "Gch DEMICAL,"
+		            + "BcH DEMICAL,"
+		            + "Element VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			
 			// Insert record into table.
@@ -42,7 +45,8 @@ public class Ybus {
 					+ this.Real + "','" 
 					+ this.Imag + "','" 
 					+ this.Bch + "','" 
-					+ this.Gch + "');";
+					+ this.Gch + "','" 
+					+ this.Element + "');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.
 		} catch (SQLException e) {
