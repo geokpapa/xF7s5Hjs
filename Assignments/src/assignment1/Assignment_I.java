@@ -27,8 +27,8 @@ public class Assignment_I {
 	
 	//*** MAIN ROUTINE ***
 	public static void main(String[] args) {
-		NodeList eq_profile = ReadXML.ToNodeList("xml/Assignment_EQ_reduced.xml"); //Read CIM EQ profile into Node List.
-		NodeList ssh_profile = ReadXML.ToNodeList("xml/Assignment_SSH_reduced.xml"); //Read CIM SSH profile into Node List.
+		NodeList eq_profile = ReadXML.ToNodeList("xml/MicroGridTestConfiguration_T1_BE_EQ_V2.xml"); //Read CIM EQ profile into Node List.
+		NodeList ssh_profile = ReadXML.ToNodeList("xml/MicroGridTestConfiguration_T1_BE_SSH_V2.xml"); //Read CIM SSH profile into Node List.
 		for (int i = 0; i < eq_profile.getLength(); i++) {
 			extractNode(eq_profile.item(i),"EQ"); //Extract EQ profile node list into database.
 		}
@@ -38,7 +38,7 @@ public class Assignment_I {
 		augmentObjects(); //Augment EQ objects with SSH data.
 		createYbus(); //Create Y-Bus matrix.
 		printYbus(); //Print Y-Bus matrix.
-		createdb("root","xxxx"); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
+		//createdb("root","xxxx"); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
 	}	
 	
 	//*** EXTRACT PROFILE NODES INTO ARRAY LISTS FOR EASIER MANIPULATION ***
@@ -113,10 +113,11 @@ public class Assignment_I {
 	
 	//*** OUTPUT Y-BUS MATRIX ***
 	public static void printYbus() {
-		System.out.println("     From      " + "     To   " + "     R/G (p.u)  " + "   X/B (p.u)    ");
-		System.out.println("-----------------------------------------------------");
+	
+		System.out.println("     From      " + "     To   " + "     R (p.u)  " + "   X (p.u)    " + "   G (p.u)    " + "   B (p.u)    ");
+		System.out.println("-------------------------------------------------------------------------------");
 		for (Ybus branch : ybus_list) {
-			System.out.format(" %s   %s     %.4f      %.4f\n",branch.From,branch.To,branch.Real,branch.Imag);
+			System.out.format(" %s   %s     %.4f      %.4f      %.4f      %.4f\n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch);
 		}		
 	}
 	

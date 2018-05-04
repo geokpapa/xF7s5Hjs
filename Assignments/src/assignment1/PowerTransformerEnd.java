@@ -10,7 +10,7 @@ public class PowerTransformerEnd {
 	String powerTransformer_id;
 	String baseVoltage_id;
 	String terminal_id;
-	Double rtot, xtot;	
+	Double rtot, xtot, VBn, SBn;	
 	
 	PowerTransformerEnd(Element element){
 		//Extract information from the CIM XML element into the object.
@@ -29,5 +29,7 @@ public class PowerTransformerEnd {
 		
 		this.rtot = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.r").item(0).getTextContent());
 		this.xtot = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.x").item(0).getTextContent());
+		this.VBn = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.ratedU").item(0).getTextContent());
+		this.SBn = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.ratedS").item(0).getTextContent());
 	}	
 }
