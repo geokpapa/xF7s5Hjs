@@ -17,7 +17,8 @@ public class SearchRoutines {
 		
 		//Search algorithm to connect lines to buses:
 		//ACLineSegment => Terminal => CNode => Terminal => Breaker => Busbar (through equipment container)		
-		String From = null, To = null, Element = null;
+		String From = null, To = null;
+		String devType = null, dev = null;
 		Double R, X, G, B;
 		Double VB = null; //Voltage base (kV).
 		Double ZB = null; //Impedance base (ohm).
@@ -45,15 +46,12 @@ public class SearchRoutines {
 															ZB = Math.pow(VB,2)/SB; //Calculate base impedance at node.
 															To = busbar.name; //To bus.															
 															R = line.rtot/ZB; //Per unit resistance.
-															X = line.xtot/ZB; //Per unit reactance.
-<<<<<<< HEAD
-															ybus_list.add(new Ybus(From,To,"ACLine",line.name,R,X)); //Add branch to Y-Bus.
-=======
-															G = line.gtot*ZB; //Per unit addmitance.
+															X = line.xtot/ZB; //Per unit reactance.															
+															G = line.gtot*ZB; //Per unit admittance.
 															B = line.btot*ZB; //Per unit susceptance.
-															Element="Line";
-															ybus_list.add(new Ybus(From,To,R,X,G,B,Element)); //Add branch to Y-Bus.
->>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
+															devType ="Line";
+															dev = line.name;
+															ybus_list.add(new Ybus(From,To,R,X,G,B,devType,dev)); //Add branch to Y-Bus.
 															ft = true; //Switch to From bus.
 														}
 													}
@@ -83,7 +81,8 @@ public class SearchRoutines {
 		
 		//Search algorithm to connect transformers to buses:
 		//TransformerEnd => Terminal => CNode => Terminal => Breaker => Busbar (through equipment container)
-		String From = null, To = null, Element= null;
+		String From = null, To = null;
+		String devType = null, dev = null;
 		Double R = null, X = null;
 		Double VB = null; //Voltage base (kV).
 		Double ZB = null; //Impedance base (ohm).
@@ -113,16 +112,13 @@ public class SearchRoutines {
 															From = busbar.name; //From bus.
 															R = trafoEnd.rtot*ZBn/ZB; //Per unit resistance.
 															X = trafoEnd.xtot*ZBn/ZB; //Per unit reactance.	
-															Element="Transformer";
+															devType ="Transformer";
+															dev = trafoEnd.name;
 															ft = false; //Switch to To bus.													
 														}
 														else {														
-															To = busbar.name; //To bus.														
-<<<<<<< HEAD
-															ybus_list.add(new Ybus(From,To,"Trafo",trafoEnd.name,R,X)); //Add branch to Y-Bus.
-=======
-															ybus_list.add(new Ybus(From,To,R,X,0.0,0.0,Element)); //Add branch to Y-Bus.
->>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
+															To = busbar.name; //To bus.													
+															ybus_list.add(new Ybus(From,To,R,X,0.0,0.0,devType,dev)); //Add branch to Y-Bus.
 															ft = true; //Switch to From bus.															
 														}
 													}
@@ -151,7 +147,8 @@ public class SearchRoutines {
 		
 		//Search algorithm to connect compensators to buses:
 		//Compensator => Terminal => CNode => Terminal => Busbar		
-		String From = null, To = null, Element = null;
+		String From = null, To = null;
+		String devType = null, dev = null;
 		Double G, B;
 		Double VB = null; //Voltage base (kV).
 		Double YB = null; //Admittance base (ohm).
@@ -170,13 +167,10 @@ public class SearchRoutines {
 											From = "Ground";
 											To = busbar.name; //To bus.
 											G = scomp.gs/YB; //Per unit conductance.
-											B = scomp.bs/YB; //Per unit susceptance.
-<<<<<<< HEAD
-											ybus_list.add(new Ybus(From,To,"ShuntComp",scomp.name,G,B)); //Add branch to Y-Bus.																				
-=======
-											Element="Shunt Capacitor";
-											ybus_list.add(new Ybus(From,To,0.0,0.0,G,B,Element)); //Add branch to Y-Bus.																				
->>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
+											B = scomp.bs/YB; //Per unit susceptance.																			
+											devType="Shunt Capacitor";
+											dev = scomp.name;
+											ybus_list.add(new Ybus(From,To,0.0,0.0,G,B,devType,dev)); //Add branch to Y-Bus.																				
 										}
 									}																			
 								}

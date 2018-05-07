@@ -40,6 +40,7 @@ public class GUI {
 	private JTextField txtFileEQ;
 	private JTextField txtFileSSH;
 	private JTable tblYbus;
+	private JLabel lblNumberOfBuses;
 
 	/**
 	 * Launch the application.
@@ -71,11 +72,11 @@ public class GUI {
 		frmAssignmentI = new JFrame();
 		frmAssignmentI.setResizable(false);
 		frmAssignmentI.setTitle("Assignment I - EH2745  CIM-XML to Bus-Branch Ybus Model  V1.0");
-		frmAssignmentI.setBounds(0, -50, 554, 276);
+		frmAssignmentI.setBounds(0, -50, 654, 351);
 		frmAssignmentI.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JButton btnExecute = new JButton("Execute");
-		btnExecute.setBounds(10, 213, 527, 25);
+		btnExecute.setBounds(10, 286, 628, 25);
 		btnExecute.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String eqFile = txtFileEQ.getText();
@@ -83,19 +84,22 @@ public class GUI {
 				String user = txtUsername.getText();
 				@SuppressWarnings("deprecation")
 				String psswd = pwdPassword.getText();
-				ArrayList<Ybus> ybus_list = assignment1.Assignment_I.execute(eqFile, sshFile, user, psswd);
+				ArrayList<Ybus> ybus_list = assignment1.Assignment_I.execute(eqFile, sshFile, user, psswd); //Get ybus list.
+				Integer N = assignment1.Assignment_I.getNumberOfBuses(); //Get number of buses.
 				
 				DefaultTableModel tableData = new DefaultTableModel();			
-				String[] columnNames = {"From","To","DevType","Device","R/G (p.u)","X/B (p.u)"};				
+				String[] columnNames = {"From Bus","To Bus","R (p.u)","X (p.u)", "Gs (p.u)", "Bs (p.u)", "DevType","Device"};				
 				for (int i = 0; i < columnNames.length; i++) {
 					tableData.addColumn(columnNames[i]);
 				}
 				for (Ybus branch : ybus_list) {					
 					String[] row = {branch.From, branch.To,
-							branch.devType, branch.dev, 
-							branch.Real.toString(), branch.Imag.toString()};
+							branch.R.toString(), branch.X.toString(),
+							branch.Gch.toString(), branch.Bch.toString(),
+							branch.devType, branch.dev};
 					tableData.addRow(row);
 				}
+				lblNumberOfBuses.setText("Number of Buses in the System: " + N.toString());
 				tblYbus.setModel(tableData);
 			}
 		});
@@ -116,13 +120,13 @@ public class GUI {
 		
 		txtFileEQ = new JTextField();
 		txtFileEQ.setText("D:\\academia\\KTH\\EH2745\\Assignments\\xml\\MicroGridTestConfiguration_T1_BE_EQ_V2.xml");
-		txtFileEQ.setBounds(249, 11, 288, 20);
+		txtFileEQ.setBounds(249, 11, 389, 20);
 		frmAssignmentI.getContentPane().add(txtFileEQ);
 		txtFileEQ.setColumns(10);
 		
 		txtFileSSH = new JTextField();
 		txtFileSSH.setText("D:\\academia\\KTH\\EH2745\\Assignments\\xml\\MicroGridTestConfiguration_T1_BE_SSH_V2.xml");
-		txtFileSSH.setBounds(249, 38, 288, 20);
+		txtFileSSH.setBounds(249, 38, 389, 20);
 		frmAssignmentI.getContentPane().add(txtFileSSH);
 		txtFileSSH.setColumns(10);
 		
@@ -131,7 +135,7 @@ public class GUI {
 		frmAssignmentI.getContentPane().add(lblEqFile);
 		
 		JLabel lblSshFile = new JLabel("SSH File:");
-		lblSshFile.setBounds(191, 44, 52, 14);
+		lblSshFile.setBounds(191, 41, 52, 14);
 		frmAssignmentI.getContentPane().add(lblSshFile);
 		
 		JLabel lblDbUser = new JLabel("DB User:");
@@ -142,8 +146,12 @@ public class GUI {
 		lblDbPsswd.setBounds(10, 41, 63, 14);
 		frmAssignmentI.getContentPane().add(lblDbPsswd);
 		
+		lblNumberOfBuses = new JLabel("Number of Buses in the System:");
+		lblNumberOfBuses.setBounds(10, 71, 227, 14);
+		frmAssignmentI.getContentPane().add(lblNumberOfBuses);
+		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 69, 527, 133);
+		scrollPane.setBounds(10, 96, 628, 179);
 		frmAssignmentI.getContentPane().add(scrollPane);
 		
 		tblYbus = new JTable();
@@ -151,7 +159,7 @@ public class GUI {
 			new Object[][] {
 			},
 			new String[] {
-				"From Bus", "To Bus", "DevType", "Device", "R/G (p.u.)", "X/B (p.u)"
+				"From Bus", "To Bus", "R (p.u.)", "X (p.u)", "Gs (p.u)", "Bs (p.u)", "DevType", "Device"
 			}
 		));
 		scrollPane.setViewportView(tblYbus);

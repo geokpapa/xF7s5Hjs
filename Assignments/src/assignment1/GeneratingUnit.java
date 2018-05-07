@@ -32,8 +32,8 @@ public class GeneratingUnit {
 			String createTable = "CREATE TABLE IF NOT EXISTS generating_unit(" 
 		            + "id VARCHAR(50),"  
 		            + "name VARCHAR(50),"
-		            + "max_p DECIMAL,"
-		            + "min_p DECIMAL,"
+		            + "max_p DECIMAL(10,4),"
+		            + "min_p DECIMAL(10,4),"
 		            + "equipmentContainer_id VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			

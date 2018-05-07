@@ -30,8 +30,8 @@ public class EnergyConsumer {
 			String createTable = "CREATE TABLE IF NOT EXISTS energy_consumer(" 
 		            + "id VARCHAR(50),"  
 		            + "name VARCHAR(50)," 
-		            + "P DECIMAL,"
-		            + "Q DECIMAL,"
+		            + "P DECIMAL(10,4),"
+		            + "Q DECIMAL(10,4),"
 		            + "baseVoltage_id VARCHAR(50)," 
 		            + "equipmentContaider_id VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);

@@ -1,8 +1,6 @@
 package assignment1;
 
-//https://introcs.cs.princeton.edu/java/32class/Complex.java.html
-
-import java.util.Objects;
+//This library was obtained from: https://introcs.cs.princeton.edu/java/32class/Complex.java.html
 
 public class Complex {
     double re;   // the real part

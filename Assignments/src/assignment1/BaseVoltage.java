@@ -26,7 +26,7 @@ public class BaseVoltage {
 			String createTable = "CREATE TABLE IF NOT EXISTS base_voltage(" 
 		            + "id VARCHAR(50),"  
 		            + "name VARCHAR(50)," 
-		            + "nominalVoltage DECIMAL)"; 
+		            + "nominalVoltage DECIMAL(10,4))"; 
 			boolean ResultSet = query.execute(createTable);
 			
 			

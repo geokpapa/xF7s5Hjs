@@ -24,7 +24,7 @@ public class RegulatingControl {
 			String createTable = "CREATE TABLE IF NOT EXISTS regulating_control(" 
 		            + "id VARCHAR(50),"  
 		            + "name VARCHAR(50)," 
-		            + "target_value DECIMAL)"; 
+		            + "target_value DECIMAL(10,4))"; 
 			boolean ResultSet = query.execute(createTable);
 			
 			// Insert record into table.
