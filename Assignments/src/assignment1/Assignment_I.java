@@ -1,6 +1,8 @@
 package assignment1;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
@@ -47,6 +49,11 @@ public class Assignment_I {
 		createdb(user,psswd); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
 		printYbus(); //Print Y-Bus matrix.		
 		return ybus_list; //Return Y-Bus list to display it in the GUI.
+=======
+		printYbus(); //Print Y-Bus matrix.
+		printYbus2();
+		//createdb("root","xxxx"); //Build SQL database (OBS: Comment this line to work without SQL for debugging purposes!).
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 	}	
 	
 	//*** EXTRACT PROFILE NODES INTO ARRAY LISTS FOR EASIER MANIPULATION ***
@@ -104,13 +111,135 @@ public class Assignment_I {
 	
 	//*** OUTPUT Y-BUS MATRIX ***
 	public static void printYbus() {
-		System.out.println("     From      " + "     To   " + "     R/G (p.u)  " + "   X/B (p.u)    ");
-		System.out.println("-----------------------------------------------------");
+	
+		System.out.println("     From      " + "     To   " + "     R (p.u)  " + "   X (p.u)    " + "   G (p.u)    " + "   B (p.u)    "+ "Type of element  ");
+		System.out.println("--------------------------------------------------------------------------------------------------");
 		for (Ybus branch : ybus_list) {
-			System.out.format(" %s   %s     %.4f      %.4f\n",branch.From,branch.To,branch.Real,branch.Imag);
+			if (branch.Element=="Shunt Capacitor")
+			{
+				System.out.format(" %s        %s     %.4f      %.4f        %.4f        %.4f     %s \n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch,branch.Element);
+			}
+			else {
+				System.out.format(" %s   %s     %.4f      %.4f        %.4f        %.4f     %s \n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch,branch.Element);	
+			}	
 		}		
 	}
 	
+<<<<<<< HEAD
+=======
+	//*** OUTPUT Y-BUS MATRIX table format ***
+	public static void printYbus2() {
+		int Ybus_number=0;
+		Complex temp1, temp2, temp3;
+		Complex[][] Ybus_elements;
+		temp3 = new Complex(0.0, 0.0);
+		ArrayList<BusbarSection> temp_busbar_list = new ArrayList<BusbarSection>();
+		for (Ybus branch : ybus_list) {
+			for (BusbarSection busbar : busbar_list) {
+				if (branch.From.equals(busbar.name)) {
+					busbar.connected=true;
+				}
+				if (branch.To.equals(busbar.name)) {
+					busbar.connected=true;
+				}	
+			}
+		}
+		for (BusbarSection busbar : busbar_list) {
+				if(busbar.connected) {
+					temp_busbar_list.add(busbar);
+					busbar.number_in_Ybus=Ybus_number;
+					Ybus_number=Ybus_number+1;
+				}
+		}
+		Ybus_elements = new Complex[temp_busbar_list.size()][temp_busbar_list.size()];
+		for (int i=0;i<temp_busbar_list.size();i++) {
+			for (int j=0;j<temp_busbar_list.size();j++) {
+				Ybus_elements[i][j] = new Complex(0.0,0.0);	
+			}
+		}
+
+		for (Ybus branch : ybus_list) {
+			if (branch.Element=="Shunt Capacitor") {
+				for (BusbarSection busbar : temp_busbar_list) {
+					if (branch.From.equals(busbar.name)||branch.To.equals(busbar.name)) {								
+						temp2 = new Complex(branch.Gch, branch.Bch);
+						Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus]=Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus].plus(temp2);
+					}
+				}
+			}
+			else {
+				for (BusbarSection busbar : temp_busbar_list) {
+					if (branch.From.equals(busbar.name)) {
+						for (BusbarSection busbar2 : temp_busbar_list) {
+							if (branch.To.equals(busbar2.name)) {	
+								temp1 = new Complex(branch.Real, branch.Imag);
+								temp1=temp1.reciprocal();								
+								if (branch.Element=="Line") {
+									temp2 = new Complex(branch.Gch/2, branch.Bch/2);				
+									Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus]=Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus].plus(temp1);
+									Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus]=Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus].plus(temp2);
+									Ybus_elements[busbar2.number_in_Ybus][busbar2.number_in_Ybus]=Ybus_elements[busbar2.number_in_Ybus][busbar2.number_in_Ybus].plus(temp1);
+									Ybus_elements[busbar2.number_in_Ybus][busbar2.number_in_Ybus]=Ybus_elements[busbar2.number_in_Ybus][busbar2.number_in_Ybus].plus(temp2);
+									Ybus_elements[busbar.number_in_Ybus][busbar2.number_in_Ybus]=Ybus_elements[busbar.number_in_Ybus][busbar2.number_in_Ybus].minus(temp1);
+									Ybus_elements[busbar2.number_in_Ybus][busbar.number_in_Ybus]=Ybus_elements[busbar2.number_in_Ybus][busbar.number_in_Ybus].minus(temp1);
+								}
+								else {
+									Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus]=Ybus_elements[busbar.number_in_Ybus][busbar.number_in_Ybus].plus(temp1);
+									Ybus_elements[busbar2.number_in_Ybus][busbar2.number_in_Ybus]=Ybus_elements[busbar2.number_in_Ybus][busbar2.number_in_Ybus].plus(temp1);
+									Ybus_elements[busbar.number_in_Ybus][busbar2.number_in_Ybus]=Ybus_elements[busbar.number_in_Ybus][busbar2.number_in_Ybus].minus(temp1);
+									Ybus_elements[busbar2.number_in_Ybus][busbar.number_in_Ybus]=Ybus_elements[busbar2.number_in_Ybus][busbar.number_in_Ybus].minus(temp1);
+								}	
+							}
+						}
+					}
+				}	
+			}
+		}	
+		System.out.println();
+		System.out.println("The Y-bus in the matrix format is the following:");
+		System.out.println();
+		for (int i=0;i<temp_busbar_list.size();i++) {
+			for (int j=0;j<temp_busbar_list.size();j++) {
+				System.out.format("   %.4f %.4fi   |",Ybus_elements[i][j].re,Ybus_elements[i][j].im);
+			}
+			System.out.println();
+			System.out.println("---------------------------------------------------------------------------------------------------------------------------------------------------------------------------");
+			System.out.println();
+		}
+		//System.out.println("     From      " + "     To   " + "     R (p.u)  " + "   X (p.u)    " + "   G (p.u)    " + "   B (p.u)    "+ "Type of element  ");
+		//System.out.println("--------------------------------------------------------------------------------------------------");
+		//for (Ybus branch : ybus_list) {
+		//	if (branch.Element=="Shunt Capacitor")
+		//	{
+		//		System.out.format(" %s        %s     %.4f      %.4f        %.4f        %.4f     %s \n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch,branch.Element);
+		//	}
+		//	else {
+		//		System.out.format(" %s   %s     %.4f      %.4f        %.4f        %.4f     %s \n",branch.From,branch.To,branch.Real,branch.Imag,branch.Gch,branch.Bch,branch.Element);	
+		//	}
+		//	
+		//}		
+	}
+	
+	private static Object Complex(double d, double e) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	//*** CONNECT TO SQL DATABASE ***
+	public static void connectdb(String user, String psswd, Connection conn) {
+		try {
+			String jdbcString = "jdbc:mysql://localhost:3306/assignment_1?useSSL=false";
+			conn = DriverManager.getConnection(jdbcString, user, psswd);
+			Statement query = conn.createStatement();
+			query.execute("DROP DATABASE IF EXISTS assignment_1"); //Clear SQL database.
+			query.execute("CREATE DATABASE IF NOT EXISTS assignment_1"); //Create new SQL database.	
+			query.close(); //Close query.
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 	//*** BUILD SQL DATABASE WITH ARRAY LIST ELEMENTS ***
 	public static void createdb(String user, String psswd) {
 		try {

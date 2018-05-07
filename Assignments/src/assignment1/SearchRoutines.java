@@ -17,10 +17,11 @@ public class SearchRoutines {
 		
 		//Search algorithm to connect lines to buses:
 		//ACLineSegment => Terminal => CNode => Terminal => Breaker => Busbar (through equipment container)		
-		String From = null, To = null;
-		Double R, X;
+		String From = null, To = null, Element = null;
+		Double R, X, G, B;
 		Double VB = null; //Voltage base (kV).
 		Double ZB = null; //Impedance base (ohm).
+		
 		boolean ft = true; //From-To flag.
 		
 		for (ACLineSegment line : line_list) {
@@ -45,7 +46,14 @@ public class SearchRoutines {
 															To = busbar.name; //To bus.															
 															R = line.rtot/ZB; //Per unit resistance.
 															X = line.xtot/ZB; //Per unit reactance.
+<<<<<<< HEAD
 															ybus_list.add(new Ybus(From,To,"ACLine",line.name,R,X)); //Add branch to Y-Bus.
+=======
+															G = line.gtot*ZB; //Per unit addmitance.
+															B = line.btot*ZB; //Per unit susceptance.
+															Element="Line";
+															ybus_list.add(new Ybus(From,To,R,X,G,B,Element)); //Add branch to Y-Bus.
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 															ft = true; //Switch to From bus.
 														}
 													}
@@ -75,10 +83,13 @@ public class SearchRoutines {
 		
 		//Search algorithm to connect transformers to buses:
 		//TransformerEnd => Terminal => CNode => Terminal => Breaker => Busbar (through equipment container)
-		String From = null, To = null;
+		String From = null, To = null, Element= null;
 		Double R = null, X = null;
 		Double VB = null; //Voltage base (kV).
 		Double ZB = null; //Impedance base (ohm).
+		Double VBn = null; //nominal Voltage base (kV).
+		Double ZBn = null; //nominal Impedance base (ohm).
+		Double SBn = null; //nominal power base
 		boolean ft = true; //From-To flag.
 		
 		for (PowerTransformerEnd trafoEnd : trafoEnd_list) {
@@ -96,14 +107,22 @@ public class SearchRoutines {
 														if (ft) {
 															VB = busbar.getBaseVoltage(voltlvl_list,basevolt_list); //Get base voltage of bus.
 															ZB = Math.pow(VB,2)/SB; //Calculate base impedance at node.
+															VBn = trafoEnd.VBn; //Get nominal base voltage of the Transformer.
+															SBn = trafoEnd.SBn; //Get nominal base power of the Transformer.
+															ZBn = Math.pow(VBn,2)/SBn; //Calculate base impedance at node.
 															From = busbar.name; //From bus.
-															R = trafoEnd.rtot/ZB; //Per unit resistance.
-															X = trafoEnd.xtot/ZB; //Per unit reactance.	
+															R = trafoEnd.rtot*ZBn/ZB; //Per unit resistance.
+															X = trafoEnd.xtot*ZBn/ZB; //Per unit reactance.	
+															Element="Transformer";
 															ft = false; //Switch to To bus.													
 														}
 														else {														
 															To = busbar.name; //To bus.														
+<<<<<<< HEAD
 															ybus_list.add(new Ybus(From,To,"Trafo",trafoEnd.name,R,X)); //Add branch to Y-Bus.
+=======
+															ybus_list.add(new Ybus(From,To,R,X,0.0,0.0,Element)); //Add branch to Y-Bus.
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 															ft = true; //Switch to From bus.															
 														}
 													}
@@ -132,7 +151,7 @@ public class SearchRoutines {
 		
 		//Search algorithm to connect compensators to buses:
 		//Compensator => Terminal => CNode => Terminal => Busbar		
-		String From = null, To = null;
+		String From = null, To = null, Element = null;
 		Double G, B;
 		Double VB = null; //Voltage base (kV).
 		Double YB = null; //Admittance base (ohm).
@@ -147,12 +166,17 @@ public class SearchRoutines {
 									for (BusbarSection busbar : busbar_list) {
 										if (busbar.id.equals(terminal2.ConductingEquipment)) {														
 											VB = busbar.getBaseVoltage(voltlvl_list,basevolt_list); //Get base voltage of bus.
-											YB = 1/Math.pow(VB,2)/SB; //Calculate base admittance at node.
+											YB = 1/Math.pow(VB,2)*SB; //Calculate base admittance at node.
 											From = "Ground";
 											To = busbar.name; //To bus.
 											G = scomp.gs/YB; //Per unit conductance.
 											B = scomp.bs/YB; //Per unit susceptance.
+<<<<<<< HEAD
 											ybus_list.add(new Ybus(From,To,"ShuntComp",scomp.name,G,B)); //Add branch to Y-Bus.																				
+=======
+											Element="Shunt Capacitor";
+											ybus_list.add(new Ybus(From,To,0.0,0.0,G,B,Element)); //Add branch to Y-Bus.																				
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 										}
 									}																			
 								}

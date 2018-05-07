@@ -5,17 +5,35 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class Ybus {
+<<<<<<< HEAD
 	String From, To;
 	String devType, dev;
 	Double Real, Imag;
 	
 	Ybus(String From, String To, String devType, String dev, Double Real, Double Imag) {
+=======
+	String From;
+	String To;
+	Double Real;
+	Double Imag;
+	Double Gch;
+	Double Bch;
+	String Element;
+	
+	Ybus(String From, String To, Double Real, Double Imag, Double Gch, Double Bch, String Element) {
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 		this.From = From;
 		this.To= To;
 		this.Real = Real;
 		this.Imag = Imag;
+<<<<<<< HEAD
 		this.devType = devType;
 		this.dev = dev;
+=======
+		this.Gch = Gch;
+		this.Bch = Bch;
+		this.Element= Element;
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 	}
 	
 	@SuppressWarnings("unused")
@@ -29,7 +47,10 @@ public class Ybus {
 		            + "DevType VARCHAR(50)," 
 		            + "Device VARCHAR(50)," 
 		            + "RG DECIMAL,"  
-		            + "XB DECIMAL)"; 
+		            + "XB DECIMAL,"
+		            + "Gch DEMICAL,"
+		            + "BcH DEMICAL,"
+		            + "Element VARCHAR(50))"; 
 			boolean ResultSet = query.execute(createTable);
 			
 			// Insert record into table.
@@ -39,7 +60,10 @@ public class Ybus {
 					+ this.devType + "','" 
 					+ this.dev + "','" 
 					+ this.Real + "','" 
-					+ this.Imag + "');";
+					+ this.Imag + "','" 
+					+ this.Bch + "','" 
+					+ this.Gch + "','" 
+					+ this.Element + "');";
 			int RowCount = query.executeUpdate(insertTable);
 			query.close(); //Close query.
 		} catch (SQLException e) {

@@ -7,10 +7,21 @@ import java.sql.Statement;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+<<<<<<< HEAD
 public class PowerTransformerEnd {	
 	String id, name;
 	String powerTransformer_id, basevoltage_id, terminal_id;
 	Double rtot, xtot;	
+=======
+public class PowerTransformerEnd {
+	
+	String id;
+	String name;
+	String powerTransformer_id;
+	String baseVoltage_id;
+	String terminal_id;
+	Double rtot, xtot, VBn, SBn;	
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 	
 	PowerTransformerEnd(Element element){
 		//Extract information from the CIM XML element into the object.
@@ -29,6 +40,7 @@ public class PowerTransformerEnd {
 		Element subelement3 = (Element)subnode3; 
 		this.terminal_id = subelement3.getAttribute("rdf:resource").replace("#","");
 		
+<<<<<<< HEAD
 		//Base Voltage ID.
 		Node subnode4 = element.getElementsByTagName("cim:TransformerEnd.BaseVoltage").item(0);
 		Element subelement4 = (Element)subnode4; 
@@ -63,4 +75,11 @@ public class PowerTransformerEnd {
 			e.printStackTrace();
 		}		
 	}
+=======
+		this.rtot = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.r").item(0).getTextContent());
+		this.xtot = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.x").item(0).getTextContent());
+		this.VBn = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.ratedU").item(0).getTextContent());
+		this.SBn = Double.parseDouble(element.getElementsByTagName("cim:PowerTransformerEnd.ratedS").item(0).getTextContent());
+	}	
+>>>>>>> 7600349488d7551c8d7e2b65bc0df6346020194b
 }
